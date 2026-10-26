@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sarthak — Creative IT Student & Developer Portfolio</title>
+<!-- Tailwind CSS for utility styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Three.js for 3D Orbit Simulator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            green: '#b7ff4a',
+            cyan: '#00f0ff',
+            pink: '#ff0055',
+            dark: '#050505',
+            card: '#0d0d0d',
+            line: '#242424'
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+:root {
+  --bg: #050505;
+  --fg: #f2f2f2;
+  --muted: #858585;
+  --line: #242424;
+  --card: #0d0d0d;
+  --green: #b7ff4a;
+  --accent-glow: rgba(183, 255, 74, 0.12);
+}
+
+body.theme-cyber {
+  --bg: #030712;
+  --fg: #e0f2fe;
+  --muted: #0284c7;
+  --line: #1e293b;
+  --card: #0f172a;
+  --green: #00f0ff;
+  --accent-glow: rgba(0, 240, 255, 0.15);
+}
+
+body.theme-neon {
+  --bg: #090014;
+  --fg: #fdf4ff;
+  --muted: #c084fc;
+  --line: #2e1065;
+  --card: #1e1b4b;
+  --green: #ff0055;
+  --accent-glow: rgba(255, 0, 85, 0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+@media (min-width: 768px) {
+  body { cursor: none; }
+}
+
+a { color: inherit; text-decoration: none; }
+.wrap { width: min(1180px, 92%); margin: auto; }
+
+/* Dynamic Background Grid */
+body:before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, .02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, .02) 1px, transparent 1px);
+  background-size: 70px 70px;
+  mask-image: linear-gradient(to bottom, black 50%, transparent 95%);
+  animation: drift 22s linear infinite;
+}
+
+body:after {
+  content: "";
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  left: var(--mx, 50%);
+  top: var(--my, 30%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -2;
+  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+  transition: left 0.25s ease-out, top 0.25s ease-out, background 0.4s ease;
+}
+
+@keyframes drift { to { background-position: 70px 70px; } }
+
+.mono { font-family: monospace; letter-spacing: 2px; text-transform: uppercase; font-size: 11px; }
+
+/* Custom Cursor */
+.cursor {
+  position: fixed; width: 10px; height: 10px;
+  border: 1px solid var(--green); border-radius: 50%;
+  z-index: 300; pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: width .2s, height .2s, background .2s, border-color .3s;
+}
+.cursor.a { width: 22px; height: 22px; background: var(--accent-glow); }
+
+.ring {
+  position: fixed; width: 36px; height: 36px;
+  border: 1px solid var(--green); opacity: 0.5; border-radius: 50%;
+  z-index: 299; pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: width .25s, height .25s, border-color .3s;
+}
+.ring.a { width: 62px; height: 62px; opacity: 0.8; }
+
+/* Boot Screen */
+#boot {
+  position: fixed; inset: 0; z-index: 200; background: var(--bg);
+  display: flex; flex-direction: column; justify-content: center; padding: 0 5vw;
+  transition: transform .9s cubic-bezier(.77,0,.18,1);
+}
+#boot.done { transform: translateY(-100%); }
+#boot .mono { color: var(--green); }
+#boot h2 { font-size: clamp(60px, 15vw, 200px); letter-spacing: -.07em; line-height: .85; margin: 18px 0; font-weight: 800; }
+#boot .bar { height: 2px; background: var(--line); margin-top: 10px; }
+#boot .bar i { display: block; height: 2px; width: 0; background: var(--green); transition: width .12s; }
+
+/* Navigation */
+nav {
+  position: fixed; z-index: 50; top: 0; left: 0; right: 0;
+  background: rgba(5, 5, 5, .82); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line); transition: background-color 0.4s ease;
+}
+.navlinks a { position: relative; }
+.navlinks a:after {
+  content: ""; position: absolute; left: 0; bottom: -7px; width: 100%; height: 2px;
+  background: var(--green); transform: scaleX(0); transform-origin: right; transition: transform .35s;
+}
+.navlinks a:hover:after { transform: scaleX(1); transform-origin: left; }
+
+/* Hero */
+.hero {
+  min-height: 100vh; display: flex; align-items: center; padding: 120px 0 70px;
+  border-bottom: 1px solid var(--line); position: relative; overflow: hidden;
+}
+h1 .ln { display: block; overflow: hidden; padding-bottom: .08em; }
+h1 .ch { display: inline-block; transform: translateY(105%); transition: transform .9s cubic-bezier(.16,1,.3,1); }
+.go h1 .ch { transform: none; }
+
+/* Ticker Marquee */
+.mq { border-bottom: 1px solid var(--line); overflow: hidden; white-space: nowrap; padding: 18px 0; }
+.mq div { display: inline-block; animation: slide 28s linear infinite; }
+.mq span {
+  font-size: clamp(30px, 4.5vw, 56px); font-weight: 800; letter-spacing: -.05em; padding: 0 .6em;
+  color: transparent; -webkit-text-stroke: 1px var(--muted); transition: color .3s;
+}
+.mq span:nth-child(3n+1) { color: var(--fg); -webkit-text-stroke: 0; }
+.mq i { color: var(--green); font-style: normal; }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+/* Universal Section Styling */
+section { padding: 110px 0; border-bottom: 1px solid var(--line); }
+.sh { display: flex; justify-content: space-between; gap: 40px; margin-bottom: 50px; flex-wrap: wrap; }
+.eyebrow { font-family: monospace; color: var(--green); letter-spacing: 3px; font-size: 11px; text-transform: uppercase; }
+
+/* Interactive Project Cards */
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+.project-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 30px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.project-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--green);
+  box-shadow: 0 16px 40px -10px var(--accent-glow);
+}
+
+/* Modal Overlay */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 250; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+/* Interactive Lab Section Canvas Elements */
+.lab-canvas-container {
+  width: 100%; height: 260px; background: #000; border-radius: 8px; position: relative; overflow: hidden;
+}
+
+/* Glass Buttons */
+.btn-primary {
+  background: var(--green); color: #000; font-weight: 700; padding: 10px 22px; border-radius: 99px;
+  transition: all 0.25s ease; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--green); }
+
+.btn-secondary {
+  border: 1px solid var(--line); color: var(--fg); font-weight: 600; padding: 10px 20px; border-radius: 99px;
+  transition: all 0.25s ease; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; background: var(--card);
+}
+.btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+.reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
+</style>
+</head>
+<body class="theme-default">
+
+<!-- Cursor elements -->
+<div class="cursor hidden md:block"></div>
+<div class="ring hidden md:block"></div>
+
+<!-- Top Progress Indicator -->
+<div id="prog" class="fixed top-0 left-0 h-[3px] bg-[var(--green)] z-[60] transition-all duration-75"></div>
+
+<!-- Boot Screen Loader -->
+<div id="boot">
+  <div class="mono">System initialization / 2026</div>
+  <h2 id="pct" class="text-[var(--fg)]">000</h2>
+  <div class="mono text-gray-500 flex justify-between">
+    <span>Loading Interactive Portfolio — Sarthak</span>
+    <span id="boot-status">Initializing Web Audio...</span>
+  </div>
+  <div class="bar"><i id="fill"></i></div>
+</div>
+
+<!-- Header Navigation -->
+<nav>
+  <div class="wrap nav h-[72px] flex items-center justify-between">
+    <a class="brand font-extrabold text-xl tracking-tight" href="#top">SARTHAK<span class="text-[var(--green)]">.</span></a>
+    
+    <div class="navlinks hidden md:flex items-center gap-7 text-xs font-mono tracking-wider text-gray-400">
+      <a href="#about" class="hover:text-white transition-colors">01. ABOUT</a>
+      <a href="#projects" class="hover:text-white transition-colors">02. WORK</a>
+      <a href="#skills" class="hover:text-white transition-colors">03. SKILLS</a>
+      <a href="#lab" class="hover:text-white transition-colors">04. LAB</a>
+      <a href="#education" class="hover:text-white transition-colors">05. EDU</a>
+      <a href="#contact" class="hover:text-white transition-colors">06. CONTACT</a>
+    </div>
+
+    <!-- Controls: Theme & Sound toggles -->
+    <div class="flex items-center gap-3">
+      <button id="sound-toggle" title="Toggle Synthesized Audio SFX" class="p-2 text-xs border border-[var(--line)] rounded-full hover:border-[var(--green)] transition-all flex items-center justify-center w-9 h-9">
+        <i class="fa-solid fa-volume-xmark text-gray-400" id="sound-icon"></i>
+      </button>
+      
+      <div class="relative group">
+        <button id="theme-btn" class="p-2 text-xs border border-[var(--line)] rounded-full hover:border-[var(--green)] transition-all flex items-center justify-center w-9 h-9" title="Switch Visual Theme">
+          <i class="fa-solid fa-palette text-[var(--green)]"></i>
+        </button>
+        <div class="absolute right-0 mt-2 w-32 bg-[var(--card)] border border-[var(--line)] rounded-lg shadow-2xl py-2 hidden group-hover:block z-50">
+          <button onclick="setTheme('default')" class="w-full text-left px-4 py-1.5 text-xs hover:bg-[var(--line)] text-lime-400 font-mono">Lime Dark</button>
+          <button onclick="setTheme('cyber')" class="w-full text-left px-4 py-1.5 text-xs hover:bg-[var(--line)] text-cyan-400 font-mono">Cyber Cyan</button>
+          <button onclick="setTheme('neon')" class="w-full text-left px-4 py-1.5 text-xs hover:bg-[var(--line)] text-pink-500 font-mono">Neon Pink</button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu Trigger -->
+      <button id="mobile-menu-btn" class="md:hidden text-lg p-2"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-nav" class="fixed inset-0 bg-black/95 z-[100] flex flex-col justify-center items-center gap-8 text-xl font-mono opacity-0 pointer-events-none transition-opacity duration-300">
+  <button id="close-mobile-nav" class="absolute top-6 right-6 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+  <a href="#about" class="mobile-link hover:text-[var(--green)]">ABOUT</a>
+  <a href="#projects" class="mobile-link hover:text-[var(--green)]">PROJECTS</a>
+  <a href="#skills" class="mobile-link hover:text-[var(--green)]">SKILLS</a>
+  <a href="#lab" class="mobile-link hover:text-[var(--green)]">CREATIVE LAB</a>
+  <a href="#education" class="mobile-link hover:text-[var(--green)]">EDUCATION</a>
+  <a href="#contact" class="mobile-link hover:text-[var(--green)]">CONTACT</a>
+</div>
+
+<!-- Hero Section -->
+<header class="hero" id="top">
+  <div class="wrap w-full">
+    <div class="mono up mb-5 text-[var(--green)] flex items-center gap-3" id="kick" data-t="SYSTEM INITIALIZATION // 2026 ONLINE">SYSTEM INITIALIZATION // 2026 ONLINE</div>
+    <h1 class="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-extrabold tracking-tight leading-none max-w-5xl">
+      <span class="ln text-2xl sm:text-4xl text-gray-500 font-medium tracking-normal mb-2 block" data-s="HELLO, I'M"></span>
+      <span class="ln text-[var(--fg)]" data-s="SARTHAK."></span>
+    </h1>
+    <p class="intro up text-lg sm:text-2xl text-gray-400 max-w-2xl mt-8 font-light leading-relaxed">
+      B.Tech Information Technology student building interactive software, exploring intelligent systems, and engineering dynamic web environments.
+    </p>
+    
+    <div class="mt-8 flex flex-wrap gap-4 items-center">
+      <a href="#projects" class="btn-primary"><i class="fa-solid fa-code"></i> Explore Work</a>
+      <a href="#contact" class="btn-secondary"><i class="fa-regular fa-paper-plane"></i> Get in Touch</a>
+    </div>
+
+    <div class="meta up grid grid-cols-2 md:grid-cols-3 gap-6 mt-14 pt-8 border-t border-[var(--line)] max-w-xl text-xs font-mono">
+      <div><span class="block text-gray-500 mb-1">ROLE.DEF</span><b class="text-sm font-sans font-semibold text-[var(--fg)]">IT Student & Developer</b></div>
+      <div><span class="block text-gray-500 mb-1">SYS.LOC</span><b class="text-sm font-sans font-semibold text-[var(--fg)]">Greater Noida, India</b></div>
+      <div><span class="block text-gray-500 mb-1">STATUS</span><b class="text-sm font-sans font-semibold text-[var(--green)]">Open for Internships</b></div>
+    </div>
+  </div>
+  <div class="scroll hidden lg:block">SCROLL TO EXPLORE ↓</div>
+</header>
+
+<!-- Marquee Banner -->
+<div class="mq" aria-hidden="true">
+  <div>
+    <span>Full-Stack Development</span><span><i>✦</i></span>
+    <span>C++ & Data Structures</span><span><i>✦</i></span>
+    <span>Python & AI Exploration</span><span><i>✦</i></span>
+    <span>Interactive Visuals</span><span><i>✦</i></span>
+    <span>Full-Stack Development</span><span><i>✦</i></span>
+    <span>C++ & Data Structures</span><span><i>✦</i></span>
+  </div>
+</div>
+
+<!-- About Section -->
+<section id="about">
+  <div class="wrap">
+    <div class="sh reveal">
+      <div class="eyebrow">01 / PROFILE</div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">Solving problems.<br><span class="text-gray-500">Mastering software foundations.</span></h2>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-12 items-start">
+      <div class="text-xl sm:text-2xl font-light text-gray-300 leading-relaxed" id="big">
+        I'm Sarthak, a second-year <span class="text-[var(--green)] font-normal">B.Tech IT student at G.L. Bajaj Institute of Technology & Management</span>. I bridges the gap between software logic and modern design aesthetics.
+      </div>
+      <div class="reveal space-y-4 text-gray-400 leading-relaxed">
+        <p>I enjoy programming, algorithms, and modular front-end applications. My continuous goal is strengthening core fundamentals in C/C++, Data Structures, Python, and scalable modern web frameworks.</p>
+        <p>I believe hands-on execution is the ultimate learning accelerator. Every project is an experiment designed to refine software reliability, interface clarity, and computational efficiency.</p>
+      </div>
+    </div>
+
+    <!-- Core Philosophy Cards -->
+    <div class="grid sm:grid-cols-3 gap-6 mt-16 pt-12 border-t border-[var(--line)]">
+      <div class="p-6 bg-[var(--card)] border border-[var(--line)] rounded-xl hover:border-[var(--green)] transition-all">
+        <div class="font-mono text-xs text-[var(--green)] mb-3">01 // BUILD</div>
+        <h3 class="text-lg font-bold mb-2">Practical Execution</h3>
+        <p class="text-xs text-gray-400 leading-normal">Transforming abstract software concepts into responsive, functional web applications and tools.</p>
+      </div>
+      <div class="p-6 bg-[var(--card)] border border-[var(--line)] rounded-xl hover:border-[var(--green)] transition-all">
+        <div class="font-mono text-xs text-[var(--green)] mb-3">02 // ARCHITECT</div>
+        <h3 class="text-lg font-bold mb-2">Core Engineering</h3>
+        <p class="text-xs text-gray-400 leading-normal">Deepening algorithmic reasoning through C++ DSA and structured object-oriented software design.</p>
+      </div>
+      <div class="p-6 bg-[var(--card)] border border-[var(--line)] rounded-xl hover:border-[var(--green)] transition-all">
+        <div class="font-mono text-xs text-[var(--green)] mb-3">03 // ITERATE</div>
+        <h3 class="text-lg font-bold mb-2">Continuous Growth</h3>
+        <p class="text-xs text-gray-400 leading-normal">Iteratively analyzing code quality, enhancing user experience, and exploring AI-driven modules.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects Section -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sh reveal flex-col md:flex-row md:items-end justify-between">
+      <div>
+        <div class="eyebrow">02 / PORTFOLIO WORK</div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">Interactive Projects</h2>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="flex flex-wrap gap-2 mt-4 md:mt-0 font-mono text-xs" id="project-filters">
+        <button data-filter="all" class="filter-btn active bg-[var(--green)] text-black px-4 py-2 rounded-full font-bold">ALL</button>
+        <button data-filter="web" class="filter-btn bg-[var(--card)] border border-[var(--line)] hover:border-[var(--green)] px-4 py-2 rounded-full">WEB</button>
+        <button data-filter="cpp" class="filter-btn bg-[var(--card)] border border-[var(--line)] hover:border-[var(--green)] px-4 py-2 rounded-full">C++ / DSA</button>
+        <button data-filter="python" class="filter-btn bg-[var(--card)] border border-[var(--line)] hover:border-[var(--green)] px-4 py-2 rounded-full">PYTHON</button>
+        <button data-filter="ai" class="filter-btn bg-[var(--card)] border border-[var(--line)] hover:border-[var(--green)] px-4 py-2 rounded-full">AI / NLP</button>
+      </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="projects-grid mt-8" id="projects-container">
+      <!-- Project cards injected dynamically via JavaScript -->
+    </div>
+  </div>
+</section>
+
+<!-- Skills & Tech Stack Section -->
+<section id="skills" class="bg-[var(--card)]/50">
+  <div class="wrap">
+    <div class="sh reveal">
+      <div class="eyebrow">03 / TECHNICAL CAPABILITIES</div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">Skills & Tech Stack</h2>
+    </div>
+
+    <!-- Tech Category Tabs -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10 font-mono text-xs" id="skill-tabs">
+      <button data-tab="languages" class="skill-tab active border-b-2 border-[var(--green)] py-3 text-left font-bold text-[var(--green)]">01. LANGUAGES</button>
+      <button data-tab="frontend" class="skill-tab border-b-2 border-transparent py-3 text-left text-gray-400 hover:text-white">02. FRONTEND</button>
+      <button data-tab="tools" class="skill-tab border-b-2 border-transparent py-3 text-left text-gray-400 hover:text-white">03. TOOLS & ENV</button>
+      <button data-tab="concepts" class="skill-tab border-b-2 border-transparent py-3 text-left text-gray-400 hover:text-white">04. CONCEPTS</button>
+    </div>
+
+    <!-- Dynamic Skill Display Area -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="skills-display">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Creative Lab Section (Interactive Demos) -->
+<section id="lab">
+  <div class="wrap">
+    <div class="sh reveal">
+      <div class="eyebrow">04 / CREATIVE LAB & SIMULATIONS</div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">Pixels & Logic at Play</h2>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8">
+      
+      <!-- Demo 1: Interactive Canvas Grid Visualizer -->
+      <div class="bg-[var(--card)] border border-[var(--line)] p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-xs text-[var(--green)]">EXPERIMENT // A</span>
+            <span class="text-xs font-mono text-gray-400">Interactive Particle Matrix</span>
+          </div>
+          <h3 class="text-xl font-bold mb-2">Grid Wave Visualizer</h3>
+          <p class="text-xs text-gray-400 mb-4">Move your cursor inside the canvas to perturb the mathematical mesh topology.</p>
+        </div>
+        
+        <div class="lab-canvas-container" id="grid-container">
+          <canvas id="grid-canvas" class="w-full h-full cursor-crosshair"></canvas>
+        </div>
+        
+        <div class="flex justify-between items-center mt-4 text-xs font-mono">
+          <button id="reset-grid-btn" class="text-[var(--green)] hover:underline"><i class="fa-solid fa-rotate-right"></i> Reset Wave</button>
+          <span class="text-gray-500">HTML5 Canvas / Math Physics</span>
+        </div>
+      </div>
+
+      <!-- Demo 2: 3D Orbit Simulation (Three.js) -->
+      <div class="bg-[var(--card)] border border-[var(--line)] p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-xs text-[var(--green)]">EXPERIMENT // B</span>
+            <span class="text-xs font-mono text-gray-400">Three.js Visualizer</span>
+          </div>
+          <h3 class="text-xl font-bold mb-2">Interactive 3D Orbital Node</h3>
+          <p class="text-xs text-gray-400 mb-4">Drag mouse inside to orbit the 3D space camera and inspect geometric mesh layers.</p>
+        </div>
+        
+        <div class="lab-canvas-container" id="orbit-3d-container"></div>
+        
+        <div class="flex justify-between items-center mt-4 text-xs font-mono">
+          <button id="toggle-orbit-speed" class="text-[var(--green)] hover:underline"><i class="fa-solid fa-gauge"></i> Toggle Orbit Velocity</button>
+          <span class="text-gray-500">WebGL / Three.js</span>
+        </div>
+      </div>
+
+      <!-- Demo 3: Interactive Wave & Motion Generator -->
+      <div class="bg-[var(--card)] border border-[var(--line)] p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-xs text-[var(--green)]">EXPERIMENT // C</span>
+            <span class="text-xs font-mono text-gray-400">Trigonometric Generator</span>
+          </div>
+          <h3 class="text-xl font-bold mb-2">Harmonic Sine Wave Synthesizer</h3>
+          <p class="text-xs text-gray-400 mb-4">Adjust frequency slider and phase to alter physical fluid vibration curves.</p>
+        </div>
+
+        <div class="lab-canvas-container flex flex-col justify-center items-center p-4">
+          <canvas id="sine-canvas" class="w-full h-36 mb-4"></canvas>
+          <div class="w-full flex items-center gap-4 text-xs font-mono">
+            <label>FREQ:</label>
+            <input type="range" id="freq-slider" min="1" max="10" value="3" class="w-full accent-[var(--green)]">
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-4 text-xs font-mono">
+          <span class="text-[var(--green)]" id="freq-value">Freq: 3.0 Hz</span>
+          <span class="text-gray-500">Calculated Real-Time Plot</span>
+        </div>
+      </div>
+
+      <!-- Demo 4: Interactive Typography Playground -->
+      <div class="bg-[var(--card)] border border-[var(--line)] p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-xs text-[var(--green)]">EXPERIMENT // D</span>
+            <span class="text-xs font-mono text-gray-400">Variable Type Engine</span>
+          </div>
+          <h3 class="text-xl font-bold mb-2">Dynamic Kinetic Typography</h3>
+          <p class="text-xs text-gray-400 mb-4">Type custom strings and customize real-time character displacement effects.</p>
+        </div>
+
+        <div class="lab-canvas-container flex flex-col justify-center items-center p-6 bg-black/90">
+          <div id="typo-output" class="text-3xl font-extrabold tracking-widest text-[var(--green)] text-center transition-all break-all">
+            SARTHAK // IT
+          </div>
+          <input type="text" id="typo-input" value="SARTHAK // IT" class="mt-6 bg-transparent border border-[var(--line)] text-center text-xs font-mono py-2 px-4 rounded-lg text-white w-full max-w-xs focus:border-[var(--green)] outline-none">
+        </div>
+
+        <div class="flex justify-between items-center mt-4 text-xs font-mono">
+          <button id="glitch-text-btn" class="text-[var(--green)] hover:underline"><i class="fa-solid fa-bolt"></i> Trigger Glitch Burst</button>
+          <span class="text-gray-500">Dynamic Text Node Manipulation</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Education Section -->
+<section id="education">
+  <div class="wrap">
+    <div class="sh reveal">
+      <div class="eyebrow">05 / ACADEMIC FOUNDATION</div>
+      <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">Education & Roadmap</h2>
+    </div>
+
+    <div class="space-y-6">
+      <div class="p-6 bg-[var(--card)] border border-[var(--line)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[var(--green)] transition-all">
+        <div>
+          <span class="text-xs font-mono text-[var(--green)]">2023 — 2027 (EXPECTED)</span>
+          <h3 class="text-2xl font-bold mt-1">Bachelor of Technology — Information Technology</h3>
+          <p class="text-sm text-gray-400">G.L. Bajaj Institute of Technology & Management, Greater Noida</p>
+        </div>
+        <span class="px-4 py-1.5 border border-[var(--line)] rounded-full text-xs font-mono text-gray-300 w-fit">Current Aggregate: 2nd Year</span>
+      </div>
+
+      <div class="p-6 bg-[var(--card)] border border-[var(--line)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[var(--green)] transition-all">
+        <div>
+          <span class="text-xs font-mono text-[var(--green)]">CORE CURRICULUM</span>
+          <h3 class="text-2xl font-bold mt-1">Data Structures, Algorithms & OOP</h3>
+          <p class="text-sm text-gray-400">Focused on low-level language mechanics, efficiency, memory management, and clean architecture.</p>
+        </div>
+        <span class="px-4 py-1.5 border border-[var(--line)] rounded-full text-xs font-mono text-gray-300 w-fit">C / C++ Concentration</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="relative">
+  <div class="wrap">
+    <div class="sh reveal">
+      <div class="eyebrow">06 / GET IN TOUCH</div>
+      <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tight">Let's build something<br><span class="text-[var(--green)]">extraordinary.</span></h2>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-12 mt-8">
+      <div>
+        <p class="text-gray-400 text-lg leading-relaxed mb-8">
+          I'm actively seeking developer internships, project collaborations, and opportunities to apply code to practical industry problems. Feel free to reach out directly or submit a message!
+        </p>
+
+        <div class="space-y-4 font-mono text-sm">
+          <div class="flex items-center gap-4">
+            <span class="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--green)]"><i class="fa-solid fa-envelope"></i></span>
+            <div>
+              <span class="block text-xs text-gray-500">DIRECT EMAIL</span>
+              <a href="mailto:sarthak.dev.it@example.com" class="hover:text-[var(--green)] transition-colors">sarthak.dev.it@example.com</a>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <span class="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--green)]"><i class="fa-solid fa-location-dot"></i></span>
+            <div>
+              <span class="block text-xs text-gray-500">LOCATION</span>
+              <span class="text-gray-300">Greater Noida, Uttar Pradesh, India</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-4 mt-8 font-mono text-xs">
+          <a href="https://github.com" target="_blank" class="p-3 border border-[var(--line)] rounded-lg hover:border-[var(--green)] hover:text-[var(--green)] transition-all flex items-center gap-2"><i class="fa-brands fa-github text-base"></i> GitHub</a>
+          <a href="https://linkedin.com" target="_blank" class="p-3 border border-[var(--line)] rounded-lg hover:border-[var(--green)] hover:text-[var(--green)] transition-all flex items-center gap-2"><i class="fa-brands fa-linkedin text-base"></i> LinkedIn</a>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <form id="contact-form" class="bg-[var(--card)] border border-[var(--line)] p-8 rounded-2xl space-y-6">
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-2">YOUR NAME *</label>
+          <input type="text" id="form-name" required placeholder="Alex Morgan" class="w-full bg-black/50 border border-[var(--line)] rounded-lg p-3 text-sm text-white focus:border-[var(--green)] outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-2">EMAIL ADDRESS *</label>
+          <input type="email" id="form-email" required placeholder="alex@example.com" class="w-full bg-black/50 border border-[var(--line)] rounded-lg p-3 text-sm text-white focus:border-[var(--green)] outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-gray-400 mb-2">MESSAGE *</label>
+          <textarea id="form-message" rows="4" required placeholder="Hi Sarthak, I'd like to talk about a project or collaboration..." class="w-full bg-black/50 border border-[var(--line)] rounded-lg p-3 text-sm text-white focus:border-[var(--green)] outline-none transition-all"></textarea>
+        </div>
+
+        <button type="submit" id="submit-btn" class="w-full btn-primary justify-center py-3">
+          <span>Send Message</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-8 border-t border-[var(--line)] text-xs font-mono text-gray-500">
+  <div class="wrap flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div>SARTHAK © 2026 // CREATIVE DEVELOPER PORTFOLIO</div>
+    <div>B.TECH INFORMATION TECHNOLOGY</div>
+  </div>
+</footer>
+
+<!-- Interactive Project Details Modal -->
+<div id="project-modal" class="modal-backdrop">
+  <div class="bg-[var(--card)] border border-[var(--line)] rounded-2xl max-w-2xl w-[92%] max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl space-y-6">
+    <button id="close-modal" class="absolute top-6 right-6 text-xl text-gray-400 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
+
+    <div>
+      <span id="modal-category" class="font-mono text-xs text-[var(--green)] uppercase">CATEGORY</span>
+      <h3 id="modal-title" class="text-3xl font-extrabold mt-1">Project Title</h3>
+    </div>
+
+    <!-- Live Preview Sandbox Display Frame -->
+    <div id="modal-preview-area" class="w-full h-48 bg-black/80 rounded-xl border border-[var(--line)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <!-- Simulated Interactive Sandbox Container -->
+      <div id="sandbox-content" class="text-center"></div>
+    </div>
+
+    <div>
+      <h4 class="font-mono text-xs text-gray-400 mb-2">SYSTEM OVERVIEW</h4>
+      <p id="modal-desc" class="text-sm text-gray-300 leading-relaxed">Detailed architecture description goes here.</p>
+    </div>
+
+    <div>
+      <h4 class="font-mono text-xs text-gray-400 mb-2">TECH STACK ENGINE</h4>
+      <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div class="flex flex-wrap gap-4 pt-4 border-t border-[var(--line)]">
+      <a id="modal-live-btn" href="#" target="_blank" class="btn-primary"><i class="fa-solid fa-up-right-from-square"></i> Launch Live Preview</a>
+      <a id="modal-github-btn" href="#" target="_blank" class="btn-secondary"><i class="fa-brands fa-github"></i> View GitHub Repository</a>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Toast Component -->
+<div id="toast" class="fixed bottom-8 right-8 bg-[var(--card)] border border-[var(--green)] text-white px-6 py-4 rounded-xl shadow-2xl z-[300] transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-3">
+  <i class="fa-solid fa-circle-check text-[var(--green)] text-lg"></i>
+  <span id="toast-msg" class="text-xs font-mono">Action processed successfully!</span>
+</div>
+
+<!-- JavaScript Logic & Interactive Engines -->
+<script>
+// --- GLOBAL APPLICATION STATE ---
+const state = {
+  soundEnabled: false,
+  audioCtx: null,
+  activeFilter: 'all',
+  activeSkillTab: 'languages'
+};
+
+// --- SYNTHESIZED SOUND SFX VIA WEB AUDIO API ---
+function initAudio() {
+  if (!state.audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) state.audioCtx = new AudioContext();
+  }
+}
+
+function playSFX(freq = 440, type = 'sine', duration = 0.08) {
+  if (!state.soundEnabled) return;
+  try {
+    initAudio();
+    if (state.audioCtx.state === 'suspended') state.audioCtx.resume();
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, state.audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.08, state.audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(state.audioCtx.destination);
+    osc.start();
+    osc.stop(state.audioCtx.currentTime + duration);
+  } catch (e) {
+    console.warn("Audio Context blocked or unavailable");
+  }
+}
+
+// Sound Toggle Setup
+document.getElementById('sound-toggle').addEventListener('click', () => {
+  state.soundEnabled = !state.soundEnabled;
+  const icon = document.getElementById('sound-icon');
+  if (state.soundEnabled) {
+    icon.className = 'fa-solid fa-volume-high text-[var(--green)]';
+    playSFX(600, 'triangle');
+    showToast("Audio SFX Enabled");
+  } else {
+    icon.className = 'fa-solid fa-volume-xmark text-gray-400';
+    showToast("Audio SFX Muted");
+  }
+});
+
+// --- THEME ENGINE ---
+function setTheme(theme) {
+  document.body.className = '';
+  if (theme !== 'default') {
+    document.body.classList.add(`theme-${theme}`);
+  }
+  playSFX(800, 'sine');
+  showToast(`Theme switched to: ${theme.toUpperCase()}`);
+}
+
+// --- TOAST NOTIFICATIONS ---
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  toastMsg.textContent = msg;
+  toast.classList.remove('translate-y-24', 'opacity-0');
+  setTimeout(() => {
+    toast.classList.add('translate-y-24', 'opacity-0');
+  }, 3000);
+}
+
+// --- BOOT LOADER ANIMATION ---
+window.addEventListener('DOMContentLoaded', () => {
+  let p = 0;
+  const pct = document.getElementById('pct');
+  const fill = document.getElementById('fill');
+  const boot = document.getElementById('boot');
+  
+  const iv = setInterval(() => {
+    p += Math.floor(Math.random() * 12) + 5;
+    if (p >= 100) {
+      p = 100;
+      clearInterval(iv);
+      setTimeout(() => {
+        boot.classList.add('done');
+        document.body.classList.add('go');
+        initCustomCursor();
+        initScrollAnimations();
+        initProjects();
+        initSkills();
+        initLabDemos();
+      }, 400);
+    }
+    pct.textContent = String(p).padStart(3, '0');
+    fill.style.width = p + '%';
+  }, 60);
+});
+
+// --- CUSTOM CURSOR ---
+function initCustomCursor() {
+  const cursor = document.querySelector('.cursor');
+  const ring = document.querySelector('.ring');
+  if (!cursor || !ring) return;
+
+  let rx = 0, ry = 0, tx = 0, ty = 0;
+  window.addEventListener('mousemove', e => {
+    tx = e.clientX;
+    ty = e.clientY;
+    cursor.style.left = tx + 'px';
+    cursor.style.top = ty + 'px';
+    document.body.style.setProperty('--mx', tx + 'px');
+    document.body.style.setProperty('--my', ty + 'px');
+  });
+
+  function loop() {
+    rx += (tx - rx) * 0.18;
+    ry += (ty - ry) * 0.18;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  document.querySelectorAll('a, button, .project-card, input, textarea').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.classList.add('a');
+      ring.classList.add('a');
+      playSFX(300, 'sine', 0.03);
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.classList.remove('a');
+      ring.classList.remove('a');
+    });
+  });
+}
+
+// --- SCROLL INTERSECTION & PROGRESS BAR ---
+function initScrollAnimations() {
+  const prog = document.getElementById('prog');
+  window.addEventListener('scroll', () => {
+    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (window.scrollY / totalHeight) * 100;
+    prog.style.width = progress + '%';
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+// --- PROJECTS DATA & INTERACTIVE SYSTEM ---
+const projectsData = [
+  {
+    id: 'campusconnect',
+    title: 'CampusConnect',
+    category: 'web',
+    categoryName: 'Web Application',
+    desc: 'An integrated campus utility portal designed for students to organize academic club announcements, real-time college events, and repository resources.',
+    stack: ['HTML5', 'Tailwind CSS', 'JavaScript ES6', 'LocalStorage API'],
+    demoInteractive: '<div class="p-4 bg-gray-900 rounded border border-gray-800 text-xs text-lime-400 font-mono">Campus Events: [2 Upcoming] <br>> Hackathon 2026 (Live)<br>> Coding Quiz (Tomorrow)</div>',
+    github: 'https://github.com',
+    live: 'https://example.com'
+  },
+  {
+    id: 'studysense',
+    title: 'StudySense AI',
+    category: 'ai',
+    categoryName: 'AI / NLP Assistant',
+    desc: 'An intelligent study companion utilizing Python NLP libraries to convert complex lecture notes into smart revision flashcards and practice prompts.',
+    stack: ['Python', 'NLP Basics', 'TF-IDF', 'Flask API'],
+    demoInteractive: '<div class="p-4 bg-gray-900 rounded border border-gray-800 text-xs text-cyan-400 font-mono">Generating Flashcards...<br>[Q]: What is OOP abstraction?<br>[A]: Hiding implementation details.</div>',
+    github: 'https://github.com',
+    live: 'https://example.com'
+  },
+  {
+    id: 'tradingjournal',
+    title: 'TradeTrack Journal',
+    category: 'web',
+    categoryName: 'Web Application',
+    desc: 'A comprehensive trading log dashboard providing performance analytics, win-rate metrics, risk-reward tracking, and visual breakdown graphs.',
+    stack: ['JavaScript', 'Chart.js', 'CSS Grid', 'IndexedDB'],
+    demoInteractive: '<div class="p-4 bg-gray-900 rounded border border-gray-800 text-xs text-emerald-400 font-mono">Win Rate: 68% | Trades Logged: 42<br>Profit Factor: 2.14</div>',
+    github: 'https://github.com',
+    live: 'https://example.com'
+  },
+  {
+    id: 'studentmanager',
+    title: 'C++ Student System',
+    category: 'cpp',
+    categoryName: 'C++ Systems Tool',
+    desc: 'A robust high-performance C++ CLI system enforcing object-oriented structure to create, filter, index, and manage student records efficiently.',
+    stack: ['C++', 'OOP Architecture', 'File Handling', 'Binary Trees'],
+    demoInteractive: '<div class="p-4 bg-gray-900 rounded border border-gray-800 text-xs text-yellow-400 font-mono">CLI Command: ./student_mgr --sort-gpa<br>Records Indexed: 1,250 entries [0.4ms]</div>',
+    github: 'https://github.com',
+    live: 'https://example.com'
+  },
+  {
+    id: 'pythonscript',
+    title: 'Automated Task Bot',
+    category: 'python',
+    categoryName: 'Python Automation',
+    desc: 'Automated workflow scripts engineered in Python to parse unstructured PDF reports, extract structured tabular data, and export clean JSON payloads.',
+    stack: ['Python', 'BeautifulSoup', 'Pandas', 'Regex'],
+    demoInteractive: '<div class="p-4 bg-gray-900 rounded border border-gray-800 text-xs text-pink-400 font-mono">Parsing Payload... Done.<br>142 Records parsed to export.json</div>',
+    github: 'https://github.com',
+    live: 'https://example.com'
+  }
+];
+
+function initProjects() {
+  const container = document.getElementById('projects-container');
+  
+  function render(filter = 'all') {
+    container.innerHTML = '';
+    const filtered = filter === 'all' ? projectsData : projectsData.filter(p => p.category === filter);
+    
+    filtered.forEach((p, idx) => {
+      const card = document.createElement('div');
+      card.className = 'project-card cursor-pointer';
+      card.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between font-mono text-xs text-gray-500 mb-4">
+            <span>0${idx + 1} // ${p.categoryName.toUpperCase()}</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[var(--green)]"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-3 hover:text-[var(--green)] transition-colors">${p.title}</h3>
+          <p class="text-xs text-gray-400 leading-relaxed">${p.desc}</p>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-[var(--line)]">
+          <div class="flex flex-wrap gap-1.5 font-mono text-[10px] text-gray-400">
+            ${p.stack.map(s => `<span class="bg-black/40 px-2 py-1 rounded border border-[var(--line)]">${s}</span>`).join('')}
+          </div>
+        </div>
+      `;
+      
+      card.addEventListener('click', () => openProjectModal(p));
+      container.appendChild(card);
+    });
+  }
+
+  // Filter Buttons Event Listeners
+  document.querySelectorAll('#project-filters button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('#project-filters button').forEach(b => {
+        b.className = 'filter-btn bg-[var(--card)] border border-[var(--line)] hover:border-[var(--green)] px-4 py-2 rounded-full text-white';
+      });
+      e.target.className = 'filter-btn active bg-[var(--green)] text-black px-4 py-2 rounded-full font-bold';
+      
+      playSFX(500, 'sine');
+      render(e.target.dataset.filter);
+    });
+  });
+
+  render();
+}
+
+// Modal Handlers
+function openProjectModal(project) {
+  playSFX(700, 'triangle');
+  document.getElementById('modal-category').textContent = project.categoryName;
+  document.getElementById('modal-title').textContent = project.title;
+  document.getElementById('modal-desc').textContent = project.desc;
+  document.getElementById('sandbox-content').innerHTML = project.demoInteractive;
+  
+  const tagsContainer = document.getElementById('modal-tags');
+  tagsContainer.innerHTML = project.stack.map(s => `<span class="bg-[var(--line)] px-3 py-1 rounded-full text-xs font-mono text-[var(--green)]">${s}</span>`).join('');
+  
+  document.getElementById('modal-live-btn').href = project.live;
+  document.getElementById('modal-github-btn').href = project.github;
+  
+  document.getElementById('project-modal').classList.add('open');
+}
+
+document.getElementById('close-modal').addEventListener('click', () => {
+  document.getElementById('project-modal').classList.remove('open');
+});
+
+// --- SKILLS & TECH STACK DATA & TABS ---
+const skillsData = {
+  languages: [
+    { name: 'C / C++', level: '85%', desc: 'Pointers, Memory Management, Data Structures, OOP Architecture' },
+    { name: 'Python', level: '80%', desc: 'Scripting, Data Manipulation, NLP Libraries, Basic Flask API' },
+    { name: 'JavaScript (ES6+)', level: '88%', desc: 'DOM Manipulation, Async/Await, Web Audio, Event Architecture' },
+    { name: 'HTML5 & CSS3', level: '92%', desc: 'Semantic Layouts, Responsive Design, CSS Animations, Grid/Flexbox' }
+  ],
+  frontend: [
+    { name: 'Tailwind CSS', level: '90%', desc: 'Utility-first UI design, responsive dark mode themes' },
+    { name: 'Canvas & WebGL', level: '70%', desc: 'Interactive 2D math animations & basic Three.js scenes' },
+    { name: 'Responsive Web UI', level: '95%', desc: 'Fluid layout structures across desktop and mobile browsers' }
+  ],
+  tools: [
+    { name: 'Git & GitHub', level: '85%', desc: 'Version control, branch management, collaborative pull requests' },
+    { name: 'VS Code', level: '90%', desc: 'Optimized workspace configuration, debugging tools & extensions' },
+    { name: 'Figma', level: '75%', desc: 'UI wireframing, component prototyping & visual design layout' }
+  ],
+  concepts: [
+    { name: 'Data Structures & Algorithms', level: '82%', desc: 'Arrays, Linked Lists, Trees, Sorting, Searching & Complexity' },
+    { name: 'Object-Oriented Programming', level: '88%', desc: 'Encapsulation, Inheritance, Polymorphism, Abstraction' },
+    { name: 'Software Logic & Design', level: '85%', desc: 'Problem decomposition, clean code principles, structured flow' }
+  ]
+};
+
+function initSkills() {
+  const display = document.getElementById('skills-display');
+
+  function renderSkills(tab) {
+    display.innerHTML = '';
+    const items = skillsData[tab] || [];
+    
+    items.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'p-5 bg-[var(--card)] border border-[var(--line)] rounded-xl space-y-3 hover:border-[var(--green)] transition-all';
+      card.innerHTML = `
+        <div class="flex justify-between items-center">
+          <h4 class="font-bold text-base text-white">${s.name}</h4>
+          <span class="font-mono text-xs text-[var(--green)]">${s.level}</span>
+        </div>
+        <p class="text-xs text-gray-400 leading-normal">${s.desc}</p>
+        <div class="w-full h-1.5 bg-[var(--line)] rounded-full overflow-hidden">
+          <div class="h-full bg-[var(--green)] transition-all duration-700" style="width: ${s.level}"></div>
+        </div>
+      `;
+      display.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('#skill-tabs button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('#skill-tabs button').forEach(b => {
+        b.className = 'skill-tab border-b-2 border-transparent py-3 text-left text-gray-400 hover:text-white';
+      });
+      e.target.className = 'skill-tab active border-b-2 border-[var(--green)] py-3 text-left font-bold text-[var(--green)]';
+      
+      playSFX(450, 'sine');
+      renderSkills(e.target.dataset.tab);
+    });
+  });
+
+  renderSkills('languages');
+}
+
+// --- CREATIVE LAB INTERACTIVE DEMOS ---
+function initLabDemos() {
+  // --- Demo 1: Interactive Grid Visualizer ---
+  const gridCanvas = document.getElementById('grid-canvas');
+  if (gridCanvas) {
+    const ctx = gridCanvas.getContext('2d');
+    let width, height;
+    let mouse = { x: -1000, y: -1000 };
+
+    function resizeGrid() {
+      width = gridCanvas.width = gridCanvas.parentElement.clientWidth;
+      height = gridCanvas.height = gridCanvas.parentElement.clientHeight;
+    }
+    resizeGrid();
+    window.addEventListener('resize', resizeGrid);
+
+    gridCanvas.addEventListener('mousemove', (e) => {
+      const rect = gridCanvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+
+    gridCanvas.addEventListener('mouseleave', () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    });
+
+    document.getElementById('reset-grid-btn').addEventListener('click', () => {
+      mouse.x = width / 2;
+      mouse.y = height / 2;
+      playSFX(600, 'sine');
+    });
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, width, height);
+      const cols = 16;
+      const rows = 10;
+      const cellW = width / cols;
+      const cellH = height / rows;
+
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line').trim() || '#242424';
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--green').trim() || '#b7ff4a';
+
+      for (let i = 0; i <= cols; i++) {
+        for (let j = 0; j <= rows; j++) {
+          let x = i * cellW;
+          let y = j * cellH;
+
+          const dx = mouse.x - x;
+          const dy = mouse.y - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = 120;
+
+          if (dist < maxDist) {
+            const angle = Math.atan2(dy, dx);
+            const force = (1 - dist / maxDist) * 20;
+            x -= Math.cos(angle) * force;
+            y -= Math.sin(angle) * force;
+          }
+
+          ctx.beginPath();
+          ctx.arc(x, y, dist < 120 ? 3 : 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(drawGrid);
+    }
+    drawGrid();
+  }
+
+  // --- Demo 2: 3D Orbit Simulator (Three.js) ---
+  const orbitContainer = document.getElementById('orbit-3d-container');
+  if (orbitContainer && window.THREE) {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, orbitContainer.clientWidth / orbitContainer.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    
+    renderer.setSize(orbitContainer.clientWidth, orbitContainer.clientHeight);
+    orbitContainer.appendChild(renderer.domElement);
+
+    // Create Mesh Orbit Sphere
+    const geometry = new THREE.IcosahedronGeometry(2, 2);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xb7ff4a,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.6
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    camera.position.z = 5;
+    let rotationSpeed = 0.008;
+
+    document.getElementById('toggle-orbit-speed').addEventListener('click', () => {
+      rotationSpeed = rotationSpeed === 0.008 ? 0.035 : 0.008;
+      playSFX(550, 'square');
+    });
+
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    orbitContainer.addEventListener('mousedown', () => isDragging = true);
+    window.addEventListener('mouseup', () => isDragging = false);
+    orbitContainer.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaMove = { x: e.offsetX - previousMousePosition.x, y: e.offsetY - previousMousePosition.y };
+        mesh.rotation.y += deltaMove.x * 0.01;
+        mesh.rotation.x += deltaMove.y * 0.01;
+      }
+      previousMousePosition = { x: e.offsetX, y: e.offsetY };
+    });
+
+    function animateOrbit() {
+      requestAnimationFrame(animateOrbit);
+      if (!isDragging) {
+        mesh.rotation.x += rotationSpeed;
+        mesh.rotation.y += rotationSpeed;
+      }
+      renderer.render(scene, camera);
+    }
+    animateOrbit();
+  }
+
+  // --- Demo 3: Sine Wave Generator ---
+  const sineCanvas = document.getElementById('sine-canvas');
+  if (sineCanvas) {
+    const sCtx = sineCanvas.getContext('2d');
+    const freqSlider = document.getElementById('freq-slider');
+    const freqValue = document.getElementById('freq-value');
+    let step = 0;
+
+    function drawSine() {
+      sineCanvas.width = sineCanvas.parentElement.clientWidth;
+      sineCanvas.height = 120;
+
+      sCtx.clearRect(0, 0, sineCanvas.width, sineCanvas.height);
+      sCtx.beginPath();
+      sCtx.lineWidth = 2;
+      sCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--green').trim() || '#b7ff4a';
+
+      const freq = parseFloat(freqSlider.value);
+      freqValue.textContent = `Freq: ${freq.toFixed(1)} Hz`;
+
+      const height = sineCanvas.height;
+      const width = sineCanvas.width;
+
+      for (let x = 0; x < width; x++) {
+        const y = Math.sin((x * freq * 0.02) + step) * 35 + height / 2;
+        if (x === 0) sCtx.moveTo(x, y);
+        else sCtx.lineTo(x, y);
+      }
+      sCtx.stroke();
+      step += 0.04;
+      requestAnimationFrame(drawSine);
+    }
+    drawSine();
+  }
+
+  // --- Demo 4: Kinetic Typography ---
+  const typoInput = document.getElementById('typo-input');
+  const typoOutput = document.getElementById('typo-output');
+  const glitchBtn = document.getElementById('glitch-text-btn');
+
+  if (typoInput && typoOutput) {
+    typoInput.addEventListener('input', (e) => {
+      typoOutput.textContent = e.target.value || 'SARTHAK // IT';
+    });
+
+    glitchBtn.addEventListener('click', () => {
+      playSFX(850, 'sawtooth', 0.15);
+      const original = typoOutput.textContent;
+      const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      let count = 0;
+      
+      const interval = setInterval(() => {
+        typoOutput.textContent = original.split('').map(c => Math.random() > 0.5 ? chars[Math.floor(Math.random() * chars.length)] : c).join('');
+        count++;
+        if (count > 8) {
+          clearInterval(interval);
+          typoOutput.textContent = original;
+        }
+      }, 50);
+    });
+  }
+}
+
+// --- CONTACT FORM VALIDATION & SUBMISSION ---
+document.getElementById('contact-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('form-name').value;
+  const email = document.getElementById('form-email').value;
+  const message = document.getElementById('form-message').value;
+
+  if (name && email && message) {
+    playSFX(700, 'sine', 0.2);
+    showToast(`Thank you, ${name}! Your message has been sent.`);
+    document.getElementById('contact-form').reset();
+  }
+});
+
+// Mobile Navigation Toggle
+document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+  const nav = document.getElementById('mobile-nav');
+  nav.classList.remove('opacity-0', 'pointer-events-none');
+});
+
+document.getElementById('close-mobile-nav').addEventListener('click', () => {
+  const nav = document.getElementById('mobile-nav');
+  nav.classList.add('opacity-0', 'pointer-events-none');
+});
+
+document.querySelectorAll('.mobile-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.getElementById('mobile-nav').classList.add('opacity-0', 'pointer-events-none');
+  });
+});
+</script>
+</body>
+</html>
